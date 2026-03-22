@@ -7,34 +7,39 @@ const { createOrder: createDomainOrder } = require('../services/orderService');
 const router = express.Router();
 
 // Create a Razorpay order for the given amount (in INR)
-router.post('/create-order', protect, async (req, res, next) => {
+router.post('/create-order', protect, async (req, res) => {
   try {
-    const { amount } = req.body;
+    // 🔥 ADD HERE
+    console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
+    console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
+
+    const amount = Number(req.body.amount);
 
     if (!amount || amount <= 0) {
-      res.status(400);
-      throw new Error('Amount is required');
+      return res.status(400).json({ message: 'Invalid amount' });
     }
 
     const razorpay = getRazorpayInstance();
 
     const options = {
-      amount: Math.round(amount * 100), // amount in paise
+      amount: Math.round(amount * 100),
       currency: 'INR',
       receipt: `order_rcpt_${Date.now()}`
     };
 
     const order = await razorpay.orders.create(options);
 
-    return res.json({
+    res.json({
       success: true,
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       keyId: process.env.RAZORPAY_KEY_ID
     });
+
   } catch (err) {
-    next(err);
+    console.error("PAYMENT ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 
