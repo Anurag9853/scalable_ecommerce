@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,14 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const from = location.state?.from?.pathname || '/products';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
