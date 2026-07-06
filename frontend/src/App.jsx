@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,7 +15,14 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import WishlistPage from './pages/WishlistPage';
 
 const App = () => {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
+
     <div className="app-container">
       <Navbar />
       <main className="main-content">

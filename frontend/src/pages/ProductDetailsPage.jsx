@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { getProductImage, getProductGallery } from '../utils/productImages';
 import ProductSlider from '../components/ProductSlider';
 
@@ -19,6 +20,7 @@ const ProductDetailsPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { user } = useAuth();
 
   const [product, setProduct]       = useState(null);
   const [related, setRelated]       = useState([]);
@@ -100,12 +102,20 @@ const ProductDetailsPage = () => {
   const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = () => {
+    if (!user) {
+      addToCart(product, quantity);
+      return;
+    }
     addToCart(product, quantity);
     setAddedMsg('✅ Added to cart!');
     setTimeout(() => setAddedMsg(''), 2500);
   };
 
   const handleBuyNow = () => {
+    if (!user) {
+      addToCart(product, quantity);
+      return;
+    }
     addToCart(product, quantity);
     navigate('/cart');
   };

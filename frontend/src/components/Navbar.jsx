@@ -75,14 +75,28 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Sync search → URL (navigate to /products)
+  // Sync search input state with URL changes
   useEffect(() => {
-    if (location.pathname !== '/products') return;
+    setSearchTerm(searchParams.get('search') || '');
+  }, [searchParams, location.pathname]);
+
+  // Sync search → URL (navigate to /products if typing elsewhere)
+  useEffect(() => {
+    if (location.pathname !== '/products') {
+      if (debouncedSearch) {
+        navigate(`/products?search=${encodeURIComponent(debouncedSearch)}`);
+      }
+      return;
+    }
     const params = new URLSearchParams(searchParams);
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    else params.delete('search');
+    if (debouncedSearch) {
+      params.set('search', debouncedSearch);
+    } else {
+      params.delete('search');
+    }
     setSearchParams(params, { replace: true });
-  }, [debouncedSearch]);
+  }, [debouncedSearch, location.pathname, navigate, searchParams, setSearchParams]);
+
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -233,10 +247,24 @@ const Navbar = () => {
 
           {/* Mobile: icons + hamburger */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }} className="mobile-icons">
-            <Link to="/wishlist" className="nav-icon-btn" style={{ display: 'none' }}>
+            <button
+              className="theme-toggle mobile-only"
+              onClick={() => setIsDark((d) => !d)}
+              style={{ border: 'none', background: 'none', padding: 'var(--space-2)' }}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <IconSun /> : <IconMoon />}
+            </button>
+            <Link to="/wishlist" className="nav-icon-btn mobile-only" title="Wishlist">
               <IconHeart filled={wishlistCount > 0} />
               {wishlistCount > 0 && <span className="nav-badge">{wishlistCount}</span>}
             </Link>
+            {user && (
+              <Link to="/cart" className="nav-icon-btn mobile-only" title="Cart">
+                <IconCart />
+                {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
+              </Link>
+            )}
             <button
               className={`nav-hamburger ${mobileOpen ? 'open' : ''}`}
               onClick={() => setMobileOpen((o) => !o)}
@@ -247,6 +275,7 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
 
       {/* Mobile overlay */}
       <div

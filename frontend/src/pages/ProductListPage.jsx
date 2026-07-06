@@ -29,6 +29,8 @@ const ProductListPage = () => {
   const sort      = searchParams.get('sort') || '';
   const minPrice  = searchParams.get('minPrice') || '';
   const maxPrice  = searchParams.get('maxPrice') || '';
+  const minRating = searchParams.get('minRating') || '';
+  const inStock   = searchParams.get('inStock') || '';
 
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
@@ -48,6 +50,8 @@ const ProductListPage = () => {
       let result = data;
       if (minPrice) result = result.filter((p) => (p.pricing?.price ?? p.price) >= Number(minPrice));
       if (maxPrice) result = result.filter((p) => (p.pricing?.price ?? p.price) <= Number(maxPrice));
+      if (minRating) result = result.filter((p) => (p.rating || 4.2) >= Number(minRating));
+      if (inStock === 'true') result = result.filter((p) => p.stock > 0);
 
       setProducts(result);
     } catch {
@@ -55,7 +59,7 @@ const ProductListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, category, sort, minPrice, maxPrice]);
+  }, [search, category, sort, minPrice, maxPrice, minRating, inStock]);
 
   useEffect(() => {
     fetchProducts();
@@ -74,9 +78,13 @@ const ProductListPage = () => {
     setSearchParams(p, { replace: true });
   };
 
-  const clearAllFilters = () => setSearchParams({});
+  const clearAllFilters = () => {
+    setLocalMin('');
+    setLocalMax('');
+    setSearchParams({});
+  };
 
-  const hasFilters = search || category || sort || minPrice || maxPrice;
+  const hasFilters = search || category || sort || minPrice || maxPrice || minRating || inStock;
 
   return (
     <div className="page-container" style={{ maxWidth: 1280 }}>
@@ -182,12 +190,21 @@ const ProductListPage = () => {
               ))}
             </div>
 
-            {/* Rating filter (UI) */}
+            {/* Rating filter */}
             <div className="filter-group">
               <div className="filter-group-title">Minimum Rating</div>
               {[4, 3, 2].map((r) => (
-                <div key={r} className="filter-option">
-                  <input type="checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} />
+                <div
+                  key={r}
+                  className={`filter-option ${Number(minRating) === r ? 'active' : ''}`}
+                  onClick={() => updateParam('minRating', Number(minRating) === r ? '' : String(r))}
+                >
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={Number(minRating) === r}
+                    style={{ pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                  />
                   <span>{'⭐'.repeat(r)} &amp; above</span>
                 </div>
               ))}
@@ -196,12 +213,28 @@ const ProductListPage = () => {
             {/* Availability */}
             <div className="filter-group">
               <div className="filter-group-title">Availability</div>
-              <div className="filter-option">
-                <input type="checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} />
+              <div
+                className={`filter-option ${inStock === 'true' ? 'active' : ''}`}
+                onClick={() => updateParam('inStock', inStock === 'true' ? '' : 'true')}
+              >
+                <input
+                  type="checkbox"
+                  readOnly
+                  checked={inStock === 'true'}
+                  style={{ pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                />
                 <span>In Stock Only</span>
               </div>
-              <div className="filter-option">
-                <input type="checkbox" readOnly checked={false} style={{ pointerEvents: 'none' }} />
+              <div
+                className={`filter-option ${inStock !== 'true' ? 'active' : ''}`}
+                onClick={() => updateParam('inStock', '')}
+              >
+                <input
+                  type="checkbox"
+                  readOnly
+                  checked={inStock !== 'true'}
+                  style={{ pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                />
                 <span>Include Out of Stock</span>
               </div>
             </div>
@@ -259,6 +292,18 @@ const ProductListPage = () => {
                 <span style={chipStyle}>
                   Max ₹{maxPrice}
                   <button onClick={() => { setLocalMax(''); updateParam('maxPrice', ''); }} style={chipClose}>×</button>
+                </span>
+              )}
+              {minRating && (
+                <span style={chipStyle}>
+                  ⭐ {minRating}+ Star
+                  <button onClick={() => updateParam('minRating', '')} style={chipClose}>×</button>
+                </span>
+              )}
+              {inStock === 'true' && (
+                <span style={chipStyle}>
+                  ✓ In Stock Only
+                  <button onClick={() => updateParam('inStock', '')} style={chipClose}>×</button>
                 </span>
               )}
             </div>

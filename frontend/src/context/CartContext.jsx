@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 const CartContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const stored = localStorage.getItem('cart');
@@ -17,13 +24,21 @@ export const CartProvider = ({ children }) => {
   }, [items]);
 
   const addToCart = (product, quantity = 1) => {
+    if (!user) {
+      showToast('Please sign in to add items to your cart.', 'warning');
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
     setItems((prev) => {
       const existing = prev.find((p) => p.productId === product._id);
       if (existing) {
+        showToast(`Increased quantity of ${product.name} in cart!`, 'success');
         return prev.map((p) =>
           p.productId === product._id ? { ...p, quantity: p.quantity + quantity } : p
         );
       }
+      showToast(`Added ${product.name} to cart!`, 'success');
       return [
         ...prev,
         {
@@ -37,10 +52,19 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = (productId) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
+    setItems((prev) => {
+      const item = prev.find((i) => i.productId === productId);
+      if (item) {
+        showToast(`Removed ${item.name} from cart.`, 'info');
+      }
+      return prev.filter((i) => i.productId !== productId);
+    });
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    setItems([]);
+  };
+
 
   const updateQuantity = (productId, quantity) => {
     if (quantity <= 0) {

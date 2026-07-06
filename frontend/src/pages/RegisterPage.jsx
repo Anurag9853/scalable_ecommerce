@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,11 +12,20 @@ const RegisterPage = () => {
   const [loading, setLoading]   = useState(false);
   const [showPwd, setShowPwd]   = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
 
   useEffect(() => {
-    if (user) navigate('/');
-  }, [user, navigate]);
+    if (user) {
+      const from = location.state?.from
+        ? (typeof location.state.from === 'string'
+            ? location.state.from
+            : (location.state.from.pathname + (location.state.from.search || ''))
+          )
+        : '/';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const strength = (() => {
     if (!password) return 0;
@@ -46,13 +55,20 @@ const RegisterPage = () => {
     try {
       const { data } = await apiClient.post('/auth/register', { name, email, password });
       login(data.user, data.token);
-      navigate('/');
+      const from = location.state?.from
+        ? (typeof location.state.from === 'string'
+            ? location.state.from
+            : (location.state.from.pathname + (location.state.from.search || ''))
+          )
+        : '/';
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Try again.');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="auth-page">
