@@ -2,45 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { getProductImage } from '../utils/productImages';
 
-/* ── Helpers ─────────────────────────────────────────────── */
-
-/**
- * Get a deterministic product image based on category + id.
- * Uses picsum.photos which is reliable and free.
- */
-const CATEGORY_SEEDS = {
-  'Electronics':              'tech-electronics',
-  'Kitchen & Home':           'kitchen-modern',
-  'Student Essentials':       'student-study',
-  'Kids & Baby':              'baby-kids',
-  'Men':                      'men-fashion',
-  'Women':                    'women-fashion',
-  'Office & Study':           'office-desk',
-  'Health & Personal Care':   'health-wellness',
-  'Smartphones':              'smartphone-device',
-  'Laptops':                  'laptop-computer',
-  'Headphones':               'headphone-audio',
-  'Smart Watches':            'smartwatch-wearable',
-  'Cameras':                  'camera-photography',
-  'Gaming':                   'gaming-console',
-  'Accessories':              'accessories-tech',
-  'Monitors':                 'monitor-display',
-  'Tablets':                  'tablet-device',
-};
-
-export const getProductImage = (product, index = 0) => {
-  // Use a 6-character slice of product._id as numeric seed so picsum stays stable
-  const idSlice = product._id ? product._id.slice(-6) : 'abc123';
-  const numericSeed = parseInt(idSlice, 16) % 1000;
-  const offset = numericSeed + index * 17;
-  return `https://picsum.photos/seed/${offset + 200}/400/400`;
-};
-
-export const getStarString = (rating) => {
-  const r = Math.round(rating * 2) / 2;
-  return '★'.repeat(Math.floor(r)) + (r % 1 ? '½' : '') + '☆'.repeat(5 - Math.ceil(r));
-};
+// Re-export so other files can import from here (backward compat)
+export { getProductImage };
 
 /* ── ProductCard ─────────────────────────────────────────── */
 const ProductCard = ({ product }) => {
@@ -65,7 +30,7 @@ const ProductCard = ({ product }) => {
   const stockClass =
     product.stock === 0 ? 'stock-out' : product.stock <= 3 ? 'stock-low' : 'stock-ok';
 
-  const imgSrc = getProductImage(product);
+  const imgSrc   = getProductImage(product, 0);
   const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = (e) => {
@@ -91,7 +56,10 @@ const ProductCard = ({ product }) => {
             alt={product.name}
             loading="lazy"
             onError={(e) => {
-              e.target.src = `https://picsum.photos/seed/${Math.floor(Math.random() * 900)}/400/400`;
+              // Fallback to a generic product image on network error
+              e.target.src =
+                'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=480&h=480&fit=crop&q=80';
+              e.target.onerror = null;
             }}
           />
 

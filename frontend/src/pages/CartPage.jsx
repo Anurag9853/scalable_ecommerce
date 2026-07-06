@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useCart } from '../context/CartContext';
-import { getProductImage } from '../components/ProductCard';
+import { getProductImage } from '../utils/productImages';
 
 const CartPage = () => {
   const { items, updateQuantity, removeFromCart, clearCart, totalAmount } = useCart();
@@ -115,8 +115,8 @@ const CartPage = () => {
         <div className="cart-items-list">
           {items.map((item) => {
             // Build a pseudo-product for image generation
-            const pseudoProduct = { _id: item.productId, category: item.category };
-            const imgSrc = getProductImage(pseudoProduct);
+            const pseudoProduct = { _id: item.productId, name: item.name, category: item.category };
+            const imgSrc = getProductImage(pseudoProduct, 0);
 
             return (
               <div key={item.productId} className="cart-item-card">
@@ -125,7 +125,7 @@ const CartPage = () => {
                   className="cart-item-img"
                   src={imgSrc}
                   alt={item.name}
-                  onError={(e) => { e.target.src = 'https://picsum.photos/100/100?grayscale'; }}
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop&q=70'; e.target.onerror = null; }}
                 />
 
                 {/* Info */}

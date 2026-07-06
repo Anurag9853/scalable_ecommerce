@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { getProductImage } from '../components/ProductCard';
+import { getProductImage, getProductGallery } from '../utils/productImages';
 import ProductSlider from '../components/ProductSlider';
 
 /* ── Delivery estimate helper ─────────────────────────────── */
@@ -95,8 +95,8 @@ const ProductDetailsPage = () => {
     finalPayableAmount: (product.price || 0) + Math.round((product.price || 0) * 0.18),
   };
 
-  // Generate 4 product image variants
-  const images = [0, 1, 2, 3].map((i) => getProductImage(product, i));
+  // Generate 4 product image variants using curated keyword-matched Unsplash photos
+  const images = getProductGallery(product);
   const wishlisted = isWishlisted(product._id);
 
   const handleAddToCart = () => {
@@ -140,7 +140,7 @@ const ProductDetailsPage = () => {
               className="product-main-img"
               src={images[activeImg]}
               alt={product.name}
-              onError={(e) => { e.target.src = 'https://picsum.photos/400/400?grayscale'; }}
+              onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=480&h=480&fit=crop&q=80'; e.target.onerror = null; }}
             />
             {discount > 0 && (
               <div style={{
@@ -160,7 +160,7 @@ const ProductDetailsPage = () => {
                 className={`product-thumb ${i === activeImg ? 'active' : ''}`}
                 onClick={() => setActiveImg(i)}
               >
-                <img src={src} alt={`View ${i + 1}`} onError={(e) => { e.target.src = 'https://picsum.photos/72/72?grayscale'; }} />
+                <img src={src} alt={`View ${i + 1}`} onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=72&h=72&fit=crop&q=70'; e.target.onerror = null; }} />
               </div>
             ))}
           </div>
