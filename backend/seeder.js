@@ -245,13 +245,11 @@ const seedData = async () => {
     await Product.deleteMany();
 
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
     const adminUser = await User.create({
       name: process.env.ADMIN_NAME || 'Bharat Admin',
       email: process.env.ADMIN_EMAIL || 'admin@bharatmart.in',
-      password: hashedPassword,
+      password: adminPassword,
       role: 'ADMIN'
     });
 
